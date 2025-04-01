@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-find_package(Albert REQUIRED)
+project(ssh VERSION 9.2)
 
-project(ssh VERSION 9.1)
+find_package(Albert REQUIRED)
 
 albert_plugin(
     INCLUDE PRIVATE $<TARGET_PROPERTY:albert::applications,INTERFACE_INCLUDE_DIRECTORIES>
