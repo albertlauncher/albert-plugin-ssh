@@ -14,6 +14,7 @@
 ALBERT_LOGGING_CATEGORY("ssh")
 using namespace albert;
 using namespace std;
+using namespace util;
 
 const QStringList Plugin::icon_urls = {"xdg:ssh", ":ssh"};
 
