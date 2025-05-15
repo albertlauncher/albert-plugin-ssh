@@ -115,6 +115,8 @@ void Plugin::handleTriggerQuery(Query &query)
 
 vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
 {
+    if (query.string().trimmed().isEmpty())
+        return {};
     return getItems(query.string(), false);
 }
 
