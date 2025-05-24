@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ssh VERSION 9.4)
+project(ssh VERSION 9.5)
 
 find_package(Albert REQUIRED)
 

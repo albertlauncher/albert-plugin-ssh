@@ -27,11 +27,10 @@ private:
 
     std::vector<albert::RankItem> getItems(const QString &query, bool allowParams) const;
 
-    albert::StrongDependency<applications::Plugin> apps{"applications"};
+    albert::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
     QSet<QString> hosts;
     const QString tr_desc;
     const QString tr_conn;
-    static const QRegularExpression regex_synopsis;
     static const QStringList icon_urls;
 
 };
