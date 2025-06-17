@@ -8,6 +8,7 @@
 #include <QString>
 #include <QTextStream>
 #include <QWidget>
+#include <ranges>
 #include <albert/albert.h>
 #include <albert/logging.h>
 #include <albert/standarditem.h>
@@ -113,8 +114,9 @@ void Plugin::handleTriggerQuery(Query &query)
 {
     auto r = getItems(query.string(), true);
     applyUsageScore(&r);
-    for (const auto &[i, s] : r)
-        query.add(i);
+    ranges::sort(r, ::greater());
+    auto v = r | views::transform(&RankItem::item);
+    query.add({v.begin(), v.end()});
 }
 
 vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
