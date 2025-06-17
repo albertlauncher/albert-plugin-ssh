@@ -99,9 +99,9 @@ std::vector<RankItem> Plugin::getItems(const QString &query, bool allowParams) c
                 StandardItem::make(host,
                                    host,
                                    tr_desc.arg(cmd),
-                                   cmd.mid(defaultTrigger().length()),
                                    icon_urls,
-                                   {{u"c"_s, tr_conn, a}}),
+                                   {{u"c"_s, tr_conn, a}},
+                                   cmd.mid(defaultTrigger().length())),
                 (double)q_host.size() / host.size()
             );
         }

@@ -9,7 +9,7 @@
 #include <albert/plugin/applications.h>
 #include <albert/plugindependency.h>
 
-class Plugin : public albert::ExtensionPlugin,
+class Plugin : public albert::util::ExtensionPlugin,
                public albert::GlobalQueryHandler
 {
     ALBERT_PLUGIN
@@ -27,7 +27,7 @@ private:
 
     std::vector<albert::RankItem> getItems(const QString &query, bool allowParams) const;
 
-    albert::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
+    albert::util::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
     QSet<QString> hosts;
     const QString tr_desc;
     const QString tr_conn;
