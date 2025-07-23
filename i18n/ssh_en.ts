@@ -2,21 +2,34 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>ConfigWidget</name>
+    <message>
+        <source>SSH commandline</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remote commandline</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Plugin</name>
     <message>
-        <source>Configured SSH host – %1</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Connect</source>
+        <extracomment>Action</extracomment>
         <translation></translation>
     </message>
     <message>
-        <source>[user@]&lt;host&gt; [params…]</source>
+        <source>[user@]&lt;host&gt; [script]</source>
         <translation></translation>
     </message>
     <message>
-        <source>Provides session launch action items for host patterns in the SSH config that do not contain globbing characters.</source>
+        <source>SSH host</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Run</source>
+        <extracomment>Action</extracomment>
         <translation></translation>
     </message>
 </context>

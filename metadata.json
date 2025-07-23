@@ -7,5 +7,6 @@
     "license": "MIT",
     "name": "SSH",
     "plugin_dependencies": ["applications"],
-    "url": "https://github.com/albertlauncher/albert-plugin-ssh"
+    "url": "https://github.com/albertlauncher/albert-plugin-ssh",
+    "readme_url": "https://github.com/albertlauncher/albert-plugin-ssh/blob/main/README.md"
 }

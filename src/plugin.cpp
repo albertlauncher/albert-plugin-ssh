@@ -1,6 +1,7 @@
 // Copyright (c) 2017-2025 Manuel Schneider
 
 #include "plugin.h"
+#include "ui_configwidget.h"
 #include <QDir>
 #include <QFile>
 #include <QLabel>
@@ -8,10 +9,10 @@
 #include <QString>
 #include <QTextStream>
 #include <QWidget>
-#include <ranges>
 #include <albert/albert.h>
 #include <albert/logging.h>
 #include <albert/standarditem.h>
+#include <albert/widgetsutil.h>
 ALBERT_LOGGING_CATEGORY("ssh")
 using namespace Qt::StringLiterals;
 using namespace albert::util;
@@ -19,8 +20,6 @@ using namespace albert;
 using namespace std;
 
 const QStringList Plugin::icon_urls = {u"xdg:ssh"_s, u":ssh"_s};
-
-
 
 static QSet<QString> parseConfigFile(const QString &path)
 {
@@ -48,91 +47,106 @@ static QSet<QString> parseConfigFile(const QString &path)
     return hosts;
 }
 
-Plugin::Plugin():
-    tr_desc(tr("Configured SSH host – %1")),
-    tr_conn(tr("Connect"))
+Plugin::Plugin()
 {
+    auto s = settings();
+    restore_ssh_cmdln(s);
+    restore_ssh_remote_cmdln(s);
+
     hosts.unite(parseConfigFile(u"/etc/ssh/config"_s));
     hosts.unite(parseConfigFile(QDir::home().filePath(u".ssh/config"_s)));
     INFO << u"Found %1 ssh hosts."_s.arg(hosts.size());
 }
 
 QString Plugin::synopsis(const QString &) const
-{ return tr("[user@]<host> [params…]"); }
+{ return tr("[user@]<host> [script]"); }
 
-bool Plugin::allowTriggerRemap() const
-{ return false; }
+bool Plugin::allowTriggerRemap() const { return false; }
 
-std::vector<RankItem> Plugin::getItems(const QString &query, bool allowParams) const
+vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
 {
     vector<RankItem> r;
 
-    static const auto regex_synopsis =
-        QRegularExpression(uR"(^(?:(\w+)@)?\[?([\w\.-]*)\]?(?:\h+(.*))?$)"_s);
-
+    static const QRegularExpression regex_synopsis(uR"(^(?:(\w+)@)?\[?([\w\.-]*)\]?(?:\h+(.*))?$)"_s);
     auto match = regex_synopsis.match(query);
     if (!match.hasMatch())
         return r;
 
     const auto q_user = match.captured(1);
     const auto q_host = match.captured(2);
-    const auto q_params = match.captured(3);
+    const auto q_cmdln = match.captured(3);
 
-    if (!(allowParams || q_params.isEmpty()))
+    // CRIT << "----";
+    // CRIT << "User:" << match.hasCaptured(1)<< q_user;
+    // CRIT << "Host:" << match.hasCaptured(2)<< q_host;
+    // CRIT << "Params:" << match.hasCaptured(3)<< q_cmdln;
+
+    // Skip if we have a commandline but no host, otherwise spaces in the query clutter results
+    if (match.hasCaptured(3) && (!query.isTriggered() || q_host.isEmpty()))
         return r;
 
-    for (const auto &host : hosts)
-    {
+    for (const auto &host : as_const(hosts))
         if (host.startsWith(q_host, Qt::CaseInsensitive))
         {
-            QString cmd = defaultTrigger();
-
-            if (!q_user.isEmpty())
-                cmd += q_user + u'@';
-            cmd += host;
-            if (!q_params.isEmpty())
-                cmd += u' ' + q_params;
-
-            auto a = [cmd, this]{ apps->runTerminal(u"%1 || exec $SHELL"_s.arg(cmd)); };
+            auto cmdln = ssh_cmdln_.arg(q_user.isEmpty()
+                                        ? host
+                                        : u"%1@%2"_s.arg(q_user, host),
+                                        q_cmdln.isEmpty()
+                                            ? ssh_remote_cmdln_.arg("true")  // Fake script doing nothing. Seems more robust and flexible than '$SHELL -i || true'
+                                            : ssh_remote_cmdln_.arg(q_cmdln));
 
             r.emplace_back(
                 StandardItem::make(host,
                                    host,
-                                   tr_desc.arg(cmd),
+                                   ui_strings.ssh_host,
                                    icon_urls,
-                                   {{u"c"_s, tr_conn, a}},
-                                   cmd.mid(defaultTrigger().length())),
+                                   {{
+                                     u"c"_s,
+                                     q_cmdln.isEmpty()
+                                        ? ui_strings.connect
+                                        : ui_strings.run,
+                                     [cmdln, this]{ apps->runTerminal(cmdln); }
+                                   }},
+                                   u""_s), // Disable completion
                 (double)q_host.size() / host.size()
-            );
+                );
         }
-    }
 
     return r;
 }
 
-void Plugin::handleTriggerQuery(Query &query)
-{
-    auto r = getItems(query.string(), true);
-    applyUsageScore(&r);
-    ranges::sort(r, ::greater());
-    auto v = r | views::transform(&RankItem::item);
-    query.add({v.begin(), v.end()});
-}
-
-vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
-{
-    if (query.string().trimmed().isEmpty())
-        return {};
-    return getItems(query.string(), false);
-}
-
 QWidget *Plugin::buildConfigWidget()
 {
-    auto *w = new QLabel(tr(
-        "Provides session launch action items for host patterns in the "
-        "SSH config that do not contain globbing characters."
-    ));
-    w->setAlignment(Qt::AlignTop);
-    w->setWordWrap(true);
+    auto *w = new QWidget;
+    Ui::ConfigWidget ui;
+    ui.setupUi(w);
+
+    ui.formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
+
+    util::bind(ui.lineEdit_cmdln, this,
+               &Plugin::ssh_cmdln,
+               &Plugin::set_ssh_cmdln,
+               &Plugin::ssh_cmdln_changed);
+
+    connect(ui.lineEdit_cmdln, &QLineEdit::editingFinished,
+            this, [this, le=ui.lineEdit_cmdln]
+            { if (le->text().isEmpty()) reset_ssh_cmdln(); });
+
+    ui.lineEdit_cmdln->setPlaceholderText(ssh_cmdln_default());
+
+
+    util::bind(ui.lineEdit_remote_cmdln, this,
+               &Plugin::ssh_remote_cmdln,
+               &Plugin::set_ssh_remote_cmdln,
+               &Plugin::ssh_remote_cmdln_changed);
+
+    connect(ui.lineEdit_remote_cmdln, &QLineEdit::editingFinished,
+            this, [this, le=ui.lineEdit_remote_cmdln]
+            { if (le->text().isEmpty()) reset_ssh_remote_cmdln(); });
+
+    ui.lineEdit_remote_cmdln->setPlaceholderText(ssh_remote_cmdln_default());
+
+
     return w;
 }
