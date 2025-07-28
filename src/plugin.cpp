@@ -92,7 +92,7 @@ vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
                                         ? host
                                         : u"%1@%2"_s.arg(q_user, host),
                                         q_cmdln.isEmpty()
-                                            ? ssh_remote_cmdln_.arg("true")  // Fake script doing nothing. Seems more robust and flexible than '$SHELL -i || true'
+                                            ? ssh_remote_cmdln_.arg(u"true"_s)  // Fake script doing nothing. Seems more robust and flexible than '$SHELL -i || true'
                                             : ssh_remote_cmdln_.arg(q_cmdln));
 
             r.emplace_back(
