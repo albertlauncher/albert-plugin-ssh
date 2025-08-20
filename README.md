@@ -1,4 +1,4 @@
-# albert-plugin-ssh
+# Albert plugin: SSH
 
 ## Features
 
