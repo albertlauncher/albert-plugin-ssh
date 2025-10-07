@@ -26,7 +26,6 @@ private:
 
     albert::util::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
     QSet<QString> hosts;
-    static const QStringList icon_urls;
 
     // Notes:
     // - -t: No TUI without.

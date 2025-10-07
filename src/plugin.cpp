@@ -10,6 +10,7 @@
 #include <QTextStream>
 #include <QWidget>
 #include <albert/albert.h>
+#include <albert/iconutil.h>
 #include <albert/logging.h>
 #include <albert/standarditem.h>
 #include <albert/widgetsutil.h>
@@ -18,8 +19,6 @@ using namespace Qt::StringLiterals;
 using namespace albert::util;
 using namespace albert;
 using namespace std;
-
-const QStringList Plugin::icon_urls = {u"xdg:ssh"_s, u":ssh"_s};
 
 static QSet<QString> parseConfigFile(const QString &path)
 {
@@ -99,7 +98,7 @@ vector<RankItem> Plugin::handleGlobalQuery(const Query &query)
                 StandardItem::make(host,
                                    host,
                                    ui_strings.ssh_host,
-                                   icon_urls,
+                                   []{ return makeImageIcon(u":ssh"_s); },
                                    {{
                                      u"c"_s,
                                      q_cmdln.isEmpty()
