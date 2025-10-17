@@ -7,9 +7,8 @@
 #include <albert/globalqueryhandler.h>
 #include <albert/plugin/applications.h>
 #include <albert/plugindependency.h>
-#include <albert/property.h>
 
-class Plugin : public albert::util::ExtensionPlugin,
+class Plugin : public albert::ExtensionPlugin,
                public albert::GlobalQueryHandler
 {
     ALBERT_PLUGIN
@@ -19,28 +18,22 @@ public:
     Plugin();
     QString synopsis(const QString&) const override;
     bool allowTriggerRemap() const override;
-    std::vector<albert::RankItem> handleGlobalQuery(const albert::Query&) override;
+    std::vector<albert::RankItem> rankItems(albert::QueryContext &) override;
     QWidget* buildConfigWidget() override;
+
+    const QString& sshCommandline() const;
+    void setSshCommandline(const QString&);
+
+    const QString& sshRemoteCommandline() const;
+    void setSshRemoteCommandline(const QString&);
 
 private:
 
-    albert::util::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
+    albert::StrongDependency<applications::Plugin> apps{QStringLiteral("applications")};
     QSet<QString> hosts;
 
-    // Notes:
-    // - -t: No TUI without.
-    // - || exec $SHELL: Gives the user the chance to read ssh errors.
-    ALBERT_PLUGIN_PROPERTY(QString, ssh_cmdln,
-                           QStringLiteral(R"(ssh -t %1 %2 || exec $SHELL)"))
-
-    // Notes:
-    // - Quotes: I/O errors for zsh, lacking job control for bash otherwise. Anyway $SHELL should
-    //   be expanded on the remote host.
-    // - $SHELL -i -c …: Running '%1 ; exec $SHELL -i' directly does not run an interactive shell.
-    // - exec $SHELL -i: Needed to get an interactive shell after the command has been run.
-    // - || true: Avoids returning exit codes to the local shell.
-    ALBERT_PLUGIN_PROPERTY(QString, ssh_remote_cmdln,
-                           QStringLiteral(R"('$SHELL -i -c "%1 ; exec $SHELL" || true')"))
+    QString ssh_commandline_;
+    QString ssh_remote_commandline_;
 
     struct {
         QString ssh_host = tr("SSH host");
