@@ -10,7 +10,7 @@
 #include <QString>
 #include <QTextStream>
 #include <QWidget>
-#include <albert/iconutil.h>
+#include <albert/icon.h>
 #include <albert/logging.h>
 #include <albert/standarditem.h>
 #include <albert/widgetsutil.h>
@@ -109,7 +109,7 @@ vector<RankItem> Plugin::rankItems(QueryContext &ctx)
                 StandardItem::make(host,
                                    host,
                                    ui_strings.ssh_host,
-                                   []{ return makeImageIcon(u":ssh"_s); },
+                                   []{ return Icon::image(u":ssh"_s); },
                                    {{
                                      u"c"_s,
                                      q_cmdln.isEmpty()
