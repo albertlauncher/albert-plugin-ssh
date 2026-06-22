@@ -18,7 +18,7 @@ public:
     Plugin();
     QString synopsis(const QString&) const override;
     bool allowTriggerRemap() const override;
-    std::vector<albert::RankItem> rankItems(albert::QueryContext &) override;
+    std::vector<albert::RankItem> rankItems(albert::QueryContext) override;
     QWidget* buildConfigWidget() override;
 
     const QString& sshCommandline() const;

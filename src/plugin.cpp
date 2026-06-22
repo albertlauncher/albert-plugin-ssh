@@ -75,7 +75,7 @@ QString Plugin::synopsis(const QString &) const
 
 bool Plugin::allowTriggerRemap() const { return false; }
 
-vector<RankItem> Plugin::rankItems(QueryContext &ctx)
+vector<RankItem> Plugin::rankItems(QueryContext ctx)
 {
     vector<RankItem> r;
 
